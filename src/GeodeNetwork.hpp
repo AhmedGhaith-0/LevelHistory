@@ -19,7 +19,6 @@ protected:
 
     geode::EventListener<geode::utils::web::WebTask> _listener;
 
-    void setupListener();
 public:
     GeodeNetwork();
 
