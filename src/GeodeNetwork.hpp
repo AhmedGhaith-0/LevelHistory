@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <Geode/loader/Event.hpp>
 #include <Geode/utils/web.hpp>
 
 class GeodeNetwork {
