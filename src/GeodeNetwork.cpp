@@ -20,48 +20,28 @@ std::string &GeodeNetwork::getResponse() {
 }
 
 void GeodeNetwork::send() {
-    geode::utils::web::WebRequest req = geode::utils::web::WebRequest();
-
+    web::WebRequest req;
     req.timeout(std::chrono::seconds(10));
 
-    geode::utils::web::WebTask task;
-    
     if (_method == MGet) {
-        task = req.get(_url);
+        _listener.setFilter(req.get(_url));
     }
-
-    _listener.setFilter(task);
 }
 
 GeodeNetwork::GeodeNetwork() {
-    setupListener();
-}
+    _listener.bind([this](web::WebTask::Event* e) {
+        if (web::WebResponse* res = e->getValue()) {
+            _data = res->string().unwrapOr("Not a string");
 
-void GeodeNetwork::setupListener() {
-    _listener.bind([this] (geode::utils::web::WebTask::Event* e) {
-        if (geode::utils::web::WebResponse* res = e->getValue()) {
-            this->_data = res->string().unwrapOr("Not a string");
-
-            // log::info("_data = {}", this->_data);
-
-            if (res->ok() && this->_onOk != nullptr) {
-                this->_onOk(this); 
-
-                return;
-            }
-
-            if (!res->ok() && this->_onError != nullptr) {
-                this->_onError(this); 
-
-                return;
+            if (res->ok() && _onOk != nullptr) {
+                _onOk(this);
+            } else if (!res->ok() && _onError != nullptr) {
+                _onError(this);
             }
         } else if (e->isCancelled()) {
-            this->_data = "Error: cancelled";
-
-            if (this->_onError != nullptr) {
-                this->_onError(this); 
-
-                return;
+            _data = "Error: cancelled";
+            if (_onError != nullptr) {
+                _onError(this);
             }
         }
     });
