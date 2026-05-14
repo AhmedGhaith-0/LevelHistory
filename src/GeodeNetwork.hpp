@@ -1,8 +1,8 @@
 #pragma once
 
 #include <functional>
-#include <Geode/loader/Event.hpp>
 #include <Geode/utils/web.hpp>
+#include <Geode/utils/async.hpp>
 
 class GeodeNetwork {
 public:
@@ -18,7 +18,7 @@ protected:
 
     HttpMethod _method = MGet;
 
-    geode::EventListener<geode::utils::web::WebTask> _listener;
+    geode::async::TaskHolder<geode::utils::web::WebResponse> _listener;
 
 public:
     GeodeNetwork();
