@@ -24,25 +24,19 @@ void GeodeNetwork::send() {
     req.timeout(std::chrono::seconds(10));
 
     if (_method == MGet) {
-        _listener.setFilter(req.get(_url));
+        _listener.spawn(
+            req.get(_url),
+            [this](web::WebResponse result) {
+                _data = result.string().unwrapOr("Not a string");
+
+                if (result.ok() && _onOk != nullptr) {
+                    _onOk(this);
+                } else if (!result.ok() && _onError != nullptr) {
+                    _onError(this);
+                }
+            }
+        );
     }
 }
 
-GeodeNetwork::GeodeNetwork() {
-    _listener.bind([this](web::WebTask::Event* e) {
-        if (web::WebResponse* res = e->getValue()) {
-            _data = res->string().unwrapOr("Not a string");
-
-            if (res->ok() && _onOk != nullptr) {
-                _onOk(this);
-            } else if (!res->ok() && _onError != nullptr) {
-                _onError(this);
-            }
-        } else if (e->isCancelled()) {
-            _data = "Error: cancelled";
-            if (_onError != nullptr) {
-                _onError(this);
-            }
-        }
-    });
-}
+GeodeNetwork::GeodeNetwork() {}
